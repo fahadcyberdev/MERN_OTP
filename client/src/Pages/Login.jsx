@@ -1,0 +1,81 @@
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { FaSignInAlt } from "react-icons/fa";
+import { toast } from "react-toastify";
+import PageWrapper from "../components/PageWrapper";
+import { API_URL } from "../config";
+
+export default function Login() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${API_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(data.msg);
+        localStorage.setItem("token", data.token);
+        navigate("/home");
+      } else toast.error(data.msg || "Login failed");
+    } catch {
+      toast.error("Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <PageWrapper>
+      <div className="bg-white/20 backdrop-blur-lg shadow-2xl rounded-2xl p-8 w-96 flex flex-col items-center">
+        <FaSignInAlt className="text-4xl text-indigo-600 mb-3" />
+        <h2 className="text-2xl font-bold text-indigo-700 mb-6">Login</h2>
+        <form className="flex flex-col w-full gap-4" onSubmit={handleLogin}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="border rounded-lg px-3 py-2 backdrop-blur-sm bg-white/20 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="border rounded-lg px-3 py-2 backdrop-blur-sm bg-white/20 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            required
+          />
+          <button
+            type="submit"
+            className="bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+
+        {/* ✅ New Register link */}
+        <p className="text-gray-700 mt-4">
+          Don’t have an account?{" "}
+          <Link
+            to="/"
+            className="text-indigo-600 font-semibold hover:underline"
+          >
+            Register
+          </Link>
+        </p>
+      </div>
+    </PageWrapper>
+  );
+}
